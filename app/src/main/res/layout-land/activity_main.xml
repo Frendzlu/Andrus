@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     tools:context=".MainActivity">
 
     <RelativeLayout
@@ -12,24 +12,22 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:background="@color/lowlightedBg">
+
         <ImageView
             android:src="@drawable/ic_baseline_chevron_right_24"
+            android:rotation="270"
             android:layout_width="72dp"
             android:layout_height="72dp"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true">
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true">
         </ImageView>
-        <ProgressBar
-            android:layout_width="96dp"
-            android:layout_centerInParent="true"
-            android:layout_height="96dp"/>
         <ImageView
             android:src="@drawable/ic_baseline_chevron_right_24"
-            android:rotation="180"
+            android:rotation="90"
             android:layout_width="72dp"
             android:layout_height="72dp"
-            android:layout_alignParentLeft="true"
-            android:layout_centerVertical="true">
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true">
         </ImageView>
     </RelativeLayout>
 
@@ -37,6 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:orientation="vertical"
         android:background="@color/bg"
         android:baselineAligned="false">
         <LinearLayout
@@ -44,6 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:clickable="true"
             android:orientation="vertical">
             <ImageView
                 android:layout_width="72dp"
@@ -90,6 +90,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:orientation="vertical"
         android:background="@color/bg">
         <LinearLayout
             android:id="@+id/collageButton"
