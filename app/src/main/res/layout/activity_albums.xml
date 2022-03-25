@@ -7,12 +7,14 @@
     tools:context=".Albums"
     android:orientation="vertical">
     <ListView
+        android:background="@color/lowlightedBg"
         android:id="@+id/albumsListView"
         android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />
     <ImageView
+        android:background="@color/bg"
         android:id="@+id/addDirectoryButton"
         android:layout_height="144dp"
         android:layout_weight="1"

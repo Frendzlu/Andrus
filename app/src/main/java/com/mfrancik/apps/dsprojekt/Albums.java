@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -40,7 +41,13 @@ public class Albums extends AppCompatActivity {
 
         fileMap = new HashMap<String, File>();
 
-        this.pic = Environment.getExternalStoragePublicDirectory( Environment.DIRECTORY_PICTURES );
+        this.pic = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        for (File file : pic.listFiles()){
+            if (file.getName().equals("MateuszFrancik")) {
+                pic = file;
+            }
+        }
+
         for (File file : pic.listFiles()){
             fileMap.put(file.getName(), file);
         }
@@ -50,7 +57,9 @@ public class Albums extends AppCompatActivity {
         albumsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.d("TAG","numer klikanego wiersza w ListView = " + i);
+                Intent intent = new Intent(Albums.this, Photos.class);
+                intent.putExtra("dir", fileMapKeys[i]);
+                startActivity(intent);
             }
         });
 
