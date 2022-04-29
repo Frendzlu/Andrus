@@ -22,6 +22,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.material.animation.ArgbEvaluatorCompat;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,19 +32,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity {
 	private final HashMap<Integer, Consumer<Integer>> afterPermissionGranted = new HashMap<Integer, Consumer<Integer>>(){};
 	private String filePath;
+	private File mainDir;
 
 	@RequiresApi(api = Build.VERSION_CODES.N)
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		Log.d("DIS-TAG", "onCreate: aaaaaaa");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
@@ -50,11 +56,14 @@ public class MainActivity extends AppCompatActivity {
 		LinearLayout albumsButton = findViewById(R.id.albumsButton);
 		LinearLayout collageButton = findViewById(R.id.collageButton);
 		LinearLayout networkingButton = findViewById(R.id.networkingButton);
-		File pic = Environment.getExternalStoragePublicDirectory( Environment.DIRECTORY_PICTURES );
 
-		File x = new File(pic, "MateuszFrancik");
-		x.mkdir();
-		this.filePath = x.getPath();
+		for (File file : Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).listFiles()){
+			if (file.getName().equals("MateuszFrancik")) {
+				mainDir = file;
+				this.filePath = file.getPath();
+			}
+		}
+
 		cameraButton.setOnClickListener(v -> {
 			AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
 			alert.setTitle("Photo source");
@@ -145,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
 					File x = new File(pic, "MateuszFrancik");
 					x.mkdir();
 					this.filePath = x.getPath();
+					this.mainDir = x;
 					new File(x, "people").mkdir();
 					new File(x, "places").mkdir();
 					new File(x, "things").mkdir();
@@ -158,62 +168,57 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.N)
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		switch (requestCode) {
 			case 200:
 				if (resultCode == RESULT_OK) {
-					ByteArrayOutputStream stream = new ByteArrayOutputStream();
 					assert data != null;
 					Bundle extras = data.getExtras();
-					Bitmap bitmappe = (Bitmap) extras.get("data");
-					bitmappe.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-					byte[] byteArray = stream.toByteArray();
-
-					FileOutputStream fs;
-					try {
-						SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_HHmmss");
-						String d = df.format(new Date());
-						Log.d("DIS-TAG", this.filePath);
-						fs = new FileOutputStream(this.filePath + "/" + "people/" + d + ".jpg");
-						fs.write(byteArray);
-						fs.close();
-					} catch (IOException e){
-						e.printStackTrace();
-					}
+					handleSaving((Bitmap) extras.get("data"));
 				}
 				break;
 			case 201:
 				if  (resultCode == RESULT_OK) {
 					assert data != null;
 					Uri imgData = data.getData();
-					ByteArrayOutputStream streamme = new ByteArrayOutputStream();
-					InputStream stream = null;
+					InputStream inputStream = null;
 					try {
-						stream = getContentResolver().openInputStream(imgData);
+						inputStream = getContentResolver().openInputStream(imgData);
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					}
-					Log.d("DIS-TAG", "Got here 1");
-					Bitmap b = BitmapFactory.decodeStream(stream);
-					b.compress(Bitmap.CompressFormat.JPEG, 100, streamme); // kompresja, typ pliku jpg, png
-					byte[] byteArray = streamme.toByteArray();
-					Log.d("DIS-TAG", "Got here 2");
-					FileOutputStream fs;
-					try {
-						SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_HHmmss");
-						String d = df.format(new Date());
-						String x = this.filePath + "/" + "people/" + d + ".jpg";
-						Log.d("DIS-TAG", "savng file at: " + x);
-						Log.d("DIS-TAG", "Got here 3");
-						fs = new FileOutputStream(x);
-						fs.write(byteArray);
-						fs.close();
-					} catch (IOException e){
-						e.printStackTrace();
-					}
+					handleSaving(BitmapFactory.decodeStream(inputStream));
 				}
 		}
 	}
+
+	@RequiresApi(api = Build.VERSION_CODES.N)
+	void handleSaving(Bitmap bitmap) {
+		AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+		alert.setTitle("Photo destination");
+		String[] destinations = Stream.of(this.mainDir.listFiles()).map(File::getName).toArray(String[]::new);
+		alert.setItems(destinations, (dialog, which) -> {
+			String dirName = destinations[which];
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+			byte[] byteArray = outputStream.toByteArray();
+			FileOutputStream fs;
+			try {
+				SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_HHmmss");
+				String d = df.format(new Date());
+				String x = this.filePath + "/" + dirName + "/" + d + ".jpg";
+				Log.d("DIS-TAG", x);
+				fs = new FileOutputStream(x);
+				fs.write(byteArray);
+				fs.close();
+			} catch (IOException e){
+				e.printStackTrace();
+			}
+		});
+		alert.show();
+	}
+
 }

@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -28,21 +29,26 @@ public class Photos extends AppCompatActivity {
 		Bundle bundle = getIntent().getExtras();
 
 		File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+		Log.d("DIS-TAG", directory.getAbsolutePath());
 		for (File file : directory.listFiles()){
+			Log.d("DIS-TAG", file.getName());
 			if (file.getName().equals("MateuszFrancik")) {
 				directory = file;
 			}
 		}
 		for (File file : directory.listFiles()){
-			if (file.getName().equals(bundle.getString("owoc"))) {
+			Log.d("DIS-TAG", file.getName());
+			if (file.getName().equals(bundle.getString("dir"))) {
 				directory = file;
 			}
 		}
 
 		if (!directory.getName().equals(bundle.getString("dir"))) {
-
+			Log.d("DIS-TAG", "ayyyy");
 		} else {
+			Log.d("DIS-TAG", "yay");
 			for (File file : directory.listFiles()) {
+				Log.d("DIS-TAG", file.getName());
 				ImageView img = new ImageView(this);
 				Bitmap bmp = betterImageDecode(file.getPath());
 				img.setImageBitmap(bmp);
