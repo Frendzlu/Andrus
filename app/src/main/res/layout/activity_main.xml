@@ -7,6 +7,31 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <!--<androidx.drawerlayout.widget.DrawerLayout
+        android:id="@+id/drawer_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            &lt;!&ndash;"Normalna" zawartość ekranu&ndash;&gt;
+
+        </RelativeLayout>
+
+        &lt;!&ndash;ListView które będzie stanowić wysuwane menu, max 320 dp szerokości&ndash;&gt;
+
+        <ListView
+
+            android:layout_width="300dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="#ff0000"
+
+            />
+
+    </androidx.drawerlayout.widget.DrawerLayout>-->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

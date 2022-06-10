@@ -2,6 +2,7 @@ package com.mfrancik.apps.dsprojekt;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -10,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.LinearLayout;
@@ -22,12 +24,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.google.android.material.animation.ArgbEvaluatorCompat;
+import com.bikomobile.multipart.Multipart;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -45,11 +48,14 @@ public class MainActivity extends AppCompatActivity {
 	private final HashMap<Integer, Consumer<Integer>> afterPermissionGranted = new HashMap<Integer, Consumer<Integer>>(){};
 	private String filePath;
 	private File mainDir;
+	private ProgressDialog pDialog;
 
 	@RequiresApi(api = Build.VERSION_CODES.N)
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+		StrictMode.setVmPolicy(builder.build());
 		setContentView(R.layout.activity_main);
 
 		LinearLayout cameraButton = findViewById(R.id.cameraButton);
@@ -57,11 +63,25 @@ public class MainActivity extends AppCompatActivity {
 		LinearLayout collageButton = findViewById(R.id.collageButton);
 		LinearLayout networkingButton = findViewById(R.id.networkingButton);
 
-		for (File file : Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).listFiles()){
-			if (file.getName().equals("MateuszFrancik")) {
-				mainDir = file;
-				this.filePath = file.getPath();
+		try {
+			for (File file : Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).listFiles()){
+				if (file.getName().equals("MateuszFrancik")) {
+					mainDir = file;
+					this.filePath = file.getPath();
+				}
 			}
+		} catch (NullPointerException er) {}
+
+		try {
+			intentWithPermission(Manifest.permission.INTERNET , 100, (a) -> { });
+		} catch (InvocationTargetException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			intentWithPermission(Manifest.permission.ACCESS_NETWORK_STATE , 100, (a) -> {});
+		} catch (InvocationTargetException | IllegalAccessException e) {
+			e.printStackTrace();
 		}
 
 		cameraButton.setOnClickListener(v -> {
@@ -177,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
 				if (resultCode == RESULT_OK) {
 					assert data != null;
 					Bundle extras = data.getExtras();
-					handleSaving((Bitmap) extras.get("data"));
+					upload((Bitmap) extras.get("data"));
 				}
 				break;
 			case 201:
@@ -221,4 +241,39 @@ public class MainActivity extends AppCompatActivity {
 		alert.show();
 	}
 
+	void upload(Bitmap bitmap) {
+		Multipart multipart = new Multipart(MainActivity.this);
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+		byte[] byteArray = stream.toByteArray();
+		//Log.d("SUS", new String(byteArray, 0));
+		multipart.addFile("image/jpeg", "file", new Date().toString(), byteArray);
+		String result = new Networking().request("http://192.168.1.104:3000/upload", String.format("{data: %s}", byteArray));
+		if (result != null) {
+			Log.d("SUS", result);
+		}
+
+		multipart.launchRequest("http://192.168.1.104:3000/upload",
+			response -> {
+				Log.d("SUS", "success");
+			},
+			error -> {
+				Log.d("SUS", "error");
+			});
+		Intent share = new Intent(Intent.ACTION_SEND);
+		share.setType("text/plain");
+//		File sdcard = Environment.getExternalStorageDirectory();
+//		File file = new File(sdcard, "testshare.txt");
+//		FileWriter writer;
+//		try {
+//			writer = new FileWriter(file);
+//			writer.append("any data");
+//			writer.flush();
+//			writer.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		share.putExtra(Intent.EXTRA_STREAM, Uri.parse(String.format("file:/%s/testshare.txt", sdcard)));
+//		startActivity(Intent.createChooser(share, "Podziel się plikiem!"));
+	}
 }
