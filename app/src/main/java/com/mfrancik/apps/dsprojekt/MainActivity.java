@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -247,7 +248,9 @@ public class MainActivity extends AppCompatActivity {
 		bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
 		byte[] byteArray = stream.toByteArray();
 		//Log.d("SUS", new String(byteArray, 0));
-		multipart.addFile("image/jpeg", "file", new Date().toString(), byteArray);
+		String pattern = "yyyyMMdd_HHmmss";
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, Locale.UK);
+		multipart.addFile("image/jpeg", "file", simpleDateFormat.format(new Date()) + ".jpg", byteArray);
 		String result = new Networking().request("http://192.168.1.104:3000/upload", String.format("{data: %s}", byteArray));
 		if (result != null) {
 			Log.d("SUS", result);
